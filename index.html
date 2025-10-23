@@ -592,29 +592,7 @@
             <h2>What Our Customers Say</h2>
             <p>Trusted by car owners across Salt Lake City</p>
             <div class="reviews-container">
-                <div class="reviews-carousel">
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="review-name">John D.</div>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <div class="review-body">Alex and his team transformed my car! The ceramic coating is flawless, and the interior looks brand new.</div>
-                    </div>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="review-name">Sarah M.</div>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <div class="review-body">Professional, punctual, and fantastic results. Highly recommend Meza for mobile detailing!</div>
-                    </div>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="review-name">Michael T.</div>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                        <div class="review-body">The best detailing service I've ever used. My car's paint has never looked better!</div>
-                    </div>
-                </div>
+                <div class="reviews-carousel"></div>
                 <div class="carousel-controls">
                     <button class="carousel-btn" id="prevReview">←</button>
                     <button class="carousel-btn" id="nextReview">→</button>
@@ -728,22 +706,138 @@
         setInterval(nextSlide, 5000);
 
         // Reviews Carousel
-        const carousel = document.querySelector('.reviews-carousel');
-        const prevBtn = document.getElementById('prevReview');
-        const nextBtn = document.getElementById('nextReview');
-        let currentIndex = 0;
+      // Reviews Carousel
+const reviewsData = [
+    {
+        "name": "Torri Osgood",
+        "rating": 5,
+        "body": "10/10 would HIGHLY recommend. Alex is absolutely amazing and did a killer job detailing our truck, there’s no one else we trust to do such an amazing job! He comes to you and is beyond reasonable with his prices"
+    },
+    {
+        "name": "Perry Roelofs",
+        "rating": 5,
+        "body": "Alex did an Amazing job detailing my Jeep today!!! Such a great job and the price was perfect!!! I truly know you will be satisfied with his work!!!"
+    },
+    {
+        "name": "Dallas David Ochoa",
+        "rating": 5,
+        "body": "Great work! Car looks new and the guys were able to come same day! Highly recommend. Attention to detail was great!"
+    },
+    {
+        "name": "Albert Granados",
+        "rating": 5,
+        "body": "These guys left our GX looking brand new! They got right to work and stayed focused on doing a very detailed job. Highly recommend!"
+    },
+    {
+        "name": "Diego Moreno",
+        "rating": 5,
+        "body": "Attention to absolutely everything inside or outside of your vehicle. The best communication, on time, clean, honest and trusting people you could have touch your vehicle. Alex will always take care of you…. Will definitely keep coming back!"
+    }
+    // Add your other reviews here
+];
 
-        function updateCarousel() {
-            const translateX = -currentIndex * 330;
-            carousel.style.transform = `translateX(${translateX}px)`;
+/**
+ * Helper function to generate star icons from a rating number
+ * @param {number} rating - A number from 0 to 5
+ * @returns {string} - HTML string of star characters
+ */
+function generateStars(rating) {
+    let stars = '';
+    for (let i = 0; i < 5; i++) {
+        // Adds a solid star if 'i' is less than the rating, otherwise an empty star
+        stars += (i < rating) ? '★' : '☆';
+    }
+    return stars;
+}
+
+/**
+ * Loads all reviews from the reviewsData array into the carousel
+ */
+function loadReviews() {
+    const carousel = document.querySelector('.reviews-carousel');
+    if (!carousel) return; // Safety check
+
+    carousel.innerHTML = ''; // Clear any existing content
+
+    reviewsData.forEach(review => {
+        // Create a new div element for the card
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'review-card';
+
+        // Set the inner HTML of the card using the review data
+        reviewCard.innerHTML = `
+            <div class="review-header">
+                <div class="review-name">${review.name}</div>
+                <div class="review-stars">${generateStars(review.rating)}</div>
+            </div>
+            <div class="review-body">${review.body}</div>
+        `;
+
+        // Add the new card to the carousel
+        carousel.appendChild(reviewCard);
+    });
+}
+
+/**
+ * Initializes the carousel functionality (buttons, sliding)
+ */
+function initializeCarousel() {
+    const carousel = document.querySelector('.reviews-carousel');
+    const prevBtn = document.getElementById('prevReview');
+    const nextBtn = document.getElementById('nextReview');
+
+    // If any required element is missing, or no reviews, hide controls and stop
+    if (!carousel || !prevBtn || !nextBtn || reviewsData.length === 0) {
+        const controls = document.querySelector('.carousel-controls');
+        if (controls) controls.style.display = 'none';
+        return;
+    }
+
+    let currentIndex = 0;
+    let cardWidth = 330; // Default fallback
+
+    // --- Smarter Width Calculation ---
+    // We measure the *actual* card width instead of hard-coding 330
+    const firstCard = document.querySelector('.review-card');
+    if (firstCard) {
+        const cardStyle = window.getComputedStyle(firstCard);
+        // Width + left margin + right margin
+        cardWidth = firstCard.offsetWidth + parseFloat(cardStyle.marginLeft) + parseFloat(cardStyle.marginRight);
+    }
+    // --- End Smarter Width Calculation ---
+
+
+    function updateCarousel() {
+        const translateX = -currentIndex * cardWidth;
+        carousel.style.transform = `translateX(${translateX}px)`;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        // This logic stops the carousel when the last card is fully visible
+        const containerWidth = document.querySelector('.reviews-container').offsetWidth;
+        const cardsOnScreen = Math.floor(containerWidth / cardWidth);
+        const maxIndex = reviewsData.length - cardsOnScreen;
+
+        if (currentIndex < maxIndex) {
+            currentIndex++;
+            updateCarousel();
         }
+    });
 
-        nextBtn.addEventListener('click', () => {
-            if (currentIndex < document.querySelectorAll('.review-card').length - 1) {
-                currentIndex++;
-                updateCarousel();
-            }
-        });
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCarousel();
+        }
+    });
+}
+
+// --- Run everything when the page is loaded ---
+// We use DOMContentLoaded to make sure all HTML is ready before we run our script
+document.addEventListener('DOMContentLoaded', () => {
+    loadReviews();         // 1. Build the HTML for the reviews
+    initializeCarousel();  // 2. Make the carousel buttons work
+});
 
         prevBtn.addEventListener('click', () => {
             if (currentIndex > 0) {
